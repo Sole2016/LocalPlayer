@@ -5,6 +5,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import com.google.android.exoplayer.util.Util;
+
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -33,12 +35,14 @@ public class ScanVideoFile {
         private static ScanVideoFile scanVideoFile = new ScanVideoFile();
     }
 
-    private ScanVideoFile() {
-    }
-
     public static ScanVideoFile getInstance() {
         return ScanInstance.scanVideoFile;
     }
+
+    private ScanVideoFile() {
+    }
+
+
 
     public ScanVideoFile setOnScanComplete(OnScanComplete complete) {
         if (!callBackList.contains(complete)) {

@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:tools="http://schemas.android.com/tools"
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <android.support.constraint.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    <data>
+        <variable
+            name="playerState"
+            type="com.zy.vplayer.entity.PlayerStateEntity"/>
+    </data>
+    <android.support.constraint.ConstraintLayout
+        android:background="@color/colorBlack"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/colorBlack">
+        android:layout_height="match_parent">
 
         <android.support.v7.widget.FitWindowsLinearLayout
             android:id="@+id/media_controller_top_layout"
@@ -14,10 +20,9 @@
 
             <android.support.v7.widget.AppCompatImageView
                 android:id="@+id/media_controller_back_iv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@mipmap/ic_back"
-                android:padding="@dimen/dp10" />
+                android:layout_width="@dimen/dp40"
+                android:layout_height="@dimen/dp40"
+                android:background="@mipmap/ic_back"/>
 
             <android.support.v7.widget.AppCompatTextView
                 android:id="@+id/media_controller_display_title_tv"
@@ -45,42 +50,97 @@
                 android:progressDrawable="@drawable/seekbar_progress_drawable"
                 android:indeterminateDrawable="@drawable/seekbar_progress_drawable"
                 android:indeterminateOnly="false"
-                android:maxHeight="@dimen/dp5"
-                android:minHeight="@dimen/dp5"
+                android:maxHeight="@dimen/dp3"
+                android:minHeight="@dimen/dp3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
             <android.support.v7.widget.AppCompatImageView
                 android:id="@+id/media_controller_play_iv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/dp10"
-                android:layout_marginTop="@dimen/dp10"
+                android:layout_width="@dimen/dp40"
+                android:layout_height="@dimen/dp40"
+                android:layout_marginBottom="@dimen/dp5"
+                android:layout_marginTop="@dimen/dp5"
                 android:src="@mipmap/ic_play_media"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/media_controller_skip_next_iv"
-                app:layout_constraintStart_toEndOf="@+id/media_controller_previous_iv"
-                app:layout_constraintTop_toBottomOf="@+id/media_controller_progress_bar" />
+                app:layout_constraintTop_toBottomOf="@+id/media_controller_progress_bar"
+                app:layout_constraintEnd_toStartOf="@+id/bottom_controller_center_line"
+                app:layout_constraintStart_toStartOf="@+id/bottom_controller_center_line" />
 
             <android.support.v7.widget.AppCompatImageView
                 android:id="@+id/media_controller_skip_next_iv"
-                android:layout_width="@dimen/dp40"
-                android:layout_height="@dimen/dp40"
+                android:layout_width="@dimen/dp30"
+                android:layout_height="@dimen/dp30"
                 android:src="@mipmap/ic_skip_next"
                 app:layout_constraintBottom_toBottomOf="@+id/media_controller_play_iv"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/media_controller_play_iv"
-                app:layout_constraintTop_toTopOf="@+id/media_controller_play_iv" />
+                app:layout_constraintTop_toTopOf="@+id/media_controller_play_iv"
+                app:layout_constraintEnd_toStartOf="@+id/bottom_controller_70_line"
+                app:layout_constraintStart_toStartOf="@+id/bottom_controller_70_line" />
 
             <android.support.v7.widget.AppCompatImageView
                 android:id="@+id/media_controller_previous_iv"
-                android:layout_width="@dimen/dp40"
-                android:layout_height="@dimen/dp40"
+                android:layout_width="@dimen/dp30"
+                android:layout_height="@dimen/dp30"
                 android:src="@mipmap/ic_skip_previous"
                 app:layout_constraintBottom_toBottomOf="@+id/media_controller_play_iv"
-                app:layout_constraintEnd_toStartOf="@+id/media_controller_play_iv"
+                app:layout_constraintEnd_toStartOf="@+id/bottom_controller_30_line"
+                app:layout_constraintTop_toTopOf="@+id/media_controller_play_iv"
+                app:layout_constraintStart_toStartOf="@+id/bottom_controller_30_line" />
+
+            <android.support.v7.widget.AppCompatImageView
+                android:id="@+id/media_controller_full_screen_iv"
+                android:layout_width="@dimen/dp30"
+                android:layout_height="@dimen/dp30"
+                app:srcCompat="@mipmap/ic_full_screen"
+                app:layout_constraintBottom_toBottomOf="@+id/media_controller_skip_next_iv"
+                app:layout_constraintStart_toEndOf="@+id/media_controller_skip_next_iv"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <android.support.constraint.Guideline
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/bottom_controller_center_line"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.5" />
+
+            <android.support.constraint.Guideline
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/bottom_controller_30_line"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.3" />
+
+            <android.support.constraint.Guideline
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/bottom_controller_70_line"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.7" />
+
+            <android.support.v7.widget.AppCompatTextView
+                android:id="@+id/media_controller_time_display_tv"
+                android:text="@string/empty_time"
+                android:textColor="@color/colorWhite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/dp10"
+                android:layout_marginLeft="@dimen/dp10"
+                android:textSize="@dimen/sp12"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/media_controller_play_iv" />
+                app:layout_constraintTop_toBottomOf="@+id/media_controller_progress_bar" />
+
+            <TextView
+                android:id="@+id/media_controller_duration_display_tv"
+                android:text="@string/empty_time"
+                android:textColor="@color/colorWhite"
+                android:layout_width="wrap_content"
+                android:layout_marginEnd="@dimen/dp10"
+                android:layout_marginRight="@dimen/dp10"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/sp12"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/media_controller_progress_bar"
+                app:layout_constraintBottom_toTopOf="@+id/media_controller_full_screen_iv" />
 
         </android.support.constraint.ConstraintLayout>
 

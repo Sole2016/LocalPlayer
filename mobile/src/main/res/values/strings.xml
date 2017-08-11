@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">LVPlayerApplication</string>
     <string name="string_simple_text">simple_text</string>
+    <string name="empty_time">00:00</string>
 </resources>
