@@ -1,5 +1,10 @@
 package com.zy.vplayer.utils;
 
+import android.view.Gravity;
+import android.widget.FrameLayout;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 public class DateUtil {
@@ -20,5 +25,15 @@ public class DateUtil {
         } else {
             return String.format(Locale.CHINA, "%02d:%02d", m, s);
         }
+    }
+
+    public String formatTime(Date date){
+
+
+
+
+        SimpleDateFormat format = (SimpleDateFormat) SimpleDateFormat.getDateInstance();
+        format.applyLocalizedPattern("HH:mm");
+        return format.format(date);
     }
 }

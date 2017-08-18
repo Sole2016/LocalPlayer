@@ -1,7 +1,5 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
-
 apply plugin: 'kotlin-android-extensions'
 
 android {
@@ -17,7 +15,7 @@ android {
     }
 
     dataBinding {
-        enabled = true
+        enabled = false
     }
 
     flavorDimensions('all32')
@@ -28,7 +26,7 @@ android {
 
     buildTypes {
         release {
-            flavorDimensions('all32','all64')
+            flavorDimensions('all32', 'all64')
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -45,39 +43,39 @@ android {
         }
 
     }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']  /**在libs文件夹下找so文件*/
+        }
+    }
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:25.4.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:0.5'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:2.2.2'
-
-//    api 'tv.danmaku.ijk.media:ijkplayer-java:0.8.2'
-//    api 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.2'
-
-//    api 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.2'
-//    api 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.2'
-//    api 'tv.danmaku.ijk.media:ijkplayer-x86:0.8.2'
-//    api 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.2'
-
-//    implementation 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.2'
-
+    //    api 'tv.danmaku.ijk.media:ijkplayer-java:0.8.2'
+    //    api 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.2'
+    //    api 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.2'
+    //    api 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.2'
+    //    api 'tv.danmaku.ijk.media:ijkplayer-x86:0.8.2'
+    //    api 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.2'
+    //    implementation 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.2'
     implementation project(':ijkplayer-java')
     implementation project(':ijkplayer-exo')
-
     all32Implementation project(':ijkplayer-armv5')
     all32Implementation project(':ijkplayer-armv7a')
     all32Implementation project(':ijkplayer-x86')
-
-//    all64Compile project(':ijkplayer-armv5')
-//    all64Compile project(':ijkplayer-armv7a')
-//    all64Compile project(':ijkplayer-arm64')
-//    all64Compile project(':ijkplayer-x86')
-//    all64Compile project(':ijkplayer-x86_64')
-
-
+    //    all64Compile project(':ijkplayer-armv5')
+    //    all64Compile project(':ijkplayer-armv7a')
+    //    all64Compile project(':ijkplayer-arm64')
+    //    all64Compile project(':ijkplayer-x86')
+    //    all64Compile project(':ijkplayer-x86_64')
+    implementation 'com.github.bumptech.glide:glide:4.0.0'
+    implementation 'com.android.support:recyclerview-v7:25.4.0'
 }

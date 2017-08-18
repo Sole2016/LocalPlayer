@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@android:id/background"
-        android:drawable="@color/colorWhite" >
+        android:id="@android:id/background">
         <shape>
+            <solid android:color="@color/colorWhite"/>
             <corners android:radius="@dimen/dp10"/>
         </shape>
     </item>
@@ -33,8 +33,9 @@
                         <corners android:radius="@dimen/dp10"/>
                     </shape>
                 </item>
-                <item android:drawable="@color/colorAccent" >
+                <item>
                     <shape>
+                        <solid android:color="@color/colorAccent"/>
                         <corners android:radius="@dimen/dp10"/>
                     </shape>
                 </item>

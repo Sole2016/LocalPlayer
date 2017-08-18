@@ -169,4 +169,9 @@ public class FileUtils {
     }
 
 
+    public static boolean hasFile(String path){
+        return new File(path).exists();
+    }
+
+
 }

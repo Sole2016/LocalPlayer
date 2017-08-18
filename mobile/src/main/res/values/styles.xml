@@ -6,6 +6,18 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowFullscreen">true</item>
     </style>
+
+
+    <style name="LineBarStyle" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:progressDrawable">@drawable/progressbar_progress_drawable</item>
+        <item name="android:indeterminateDrawable">@drawable/progressbar_progress_drawable</item>
+        <item name="android:indeterminateOnly">false</item>
+        <item name="android:minHeight">@dimen/dp3</item>
+        <item name="android:maxHeight">@dimen/dp3</item>
+        <item name="android:max">100</item>
+    </style>
+
 
 </resources>
