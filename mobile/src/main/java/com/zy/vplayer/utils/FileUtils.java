@@ -4,16 +4,22 @@ import android.content.Context;
 import android.os.storage.StorageManager;
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * 1.获取手机目录所有的音乐文件
@@ -51,6 +57,39 @@ public class FileUtils {
         }
         return null;
     }
+
+    /**
+     * 获取外置SD卡路径
+     * @return  应该就一条记录或空
+     */
+    public static List<String> getExtSDCardPath()
+    {
+        List<String> lResult = new ArrayList<String>();
+        try {
+            Runtime rt = Runtime.getRuntime();
+            Process proc = rt.exec("mount");
+            InputStream is = proc.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.contains("extSdCard"))
+                {
+                    String [] arr = line.split(" ");
+                    String path = arr[1];
+                    File file = new File(path);
+                    if (file.isDirectory())
+                    {
+                        lResult.add(path);
+                    }
+                }
+            }
+            isr.close();
+        } catch (Exception e) {
+        }
+        return lResult;
+    }
+
 
     /**
      * 遍历文件目录下的所有文件
@@ -173,5 +212,50 @@ public class FileUtils {
         return new File(path).exists();
     }
 
+    public static String getFileSize(File file){
+        if(file == null || file.isDirectory() || !file.exists()){
+            return "0b";
+        }
+        long length = file.length();
+        System.out.println("name="+file.getName()+","+length);
+        String unitStr = "";
+        //b范围
+        if(length < 1000L){
+            unitStr = "b";
+            return String.format(Locale.CHINA, "%f%s", length,unitStr);
+        }
+        //kb范围
+        if(length < 1000L * 1024L){
+            unitStr = "Kb";
+            return String.format(Locale.CHINA, "%f%s", length / 1024L,unitStr);
+        }
+        //mb范围
+        if(length < (1000L * 1024L * 1024L)){
+            unitStr = "Mb";
+            float size = length /1024F /1024F;
+            NumberFormat format = NumberFormat.getInstance(Locale.CHINA);
+            if(size > 100){
+                format.setMaximumFractionDigits(0);
+            }else{
+                format.setMaximumFractionDigits(1);
+            }
+            return String.format(Locale.CHINA, "%s%s", format.format(size),unitStr);
+        }
+        //Gb范围
+        if(length < (1000L *1024L *1024L *1024L)){
+            unitStr = "Gb";
+            float size = length /1024F /1024F /1024F;
+            NumberFormat format = NumberFormat.getInstance(Locale.CHINA);
+            if(size > 100){
+                format.setMaximumFractionDigits(0);
+            }else{
+                format.setMaximumFractionDigits(2);
+            }
+            System.out.println("size...."+size+","+format.format(size));
+            return String.format(Locale.CHINA, "%s%s", format.format(size),unitStr);
+        }
+        unitStr = "too large";
+        return unitStr;
+    }
 
 }

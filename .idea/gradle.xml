@@ -8,13 +8,6 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/ijkplayer-arm64" />
-            <option value="$PROJECT_DIR$/ijkplayer-armv5" />
-            <option value="$PROJECT_DIR$/ijkplayer-armv7a" />
-            <option value="$PROJECT_DIR$/ijkplayer-exo" />
-            <option value="$PROJECT_DIR$/ijkplayer-java" />
-            <option value="$PROJECT_DIR$/ijkplayer-x86" />
-            <option value="$PROJECT_DIR$/ijkplayer-x86_64" />
             <option value="$PROJECT_DIR$/mobile" />
             <option value="$PROJECT_DIR$/tv" />
           </set>

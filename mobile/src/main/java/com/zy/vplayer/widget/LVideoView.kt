@@ -22,10 +22,8 @@ import java.lang.ref.WeakReference
 import java.util.*
 
 class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context, attrs), IPlayerContract.IView {
-
-
-    val PERCENT_HEIGHT = 2f / 5f
-    val MIN_HEIGHT = 450
+    private val PERCENT_HEIGHT = 2f / 5f
+    private val MIN_HEIGHT = 450
     private var mVideoUri: Uri? = null
     private var mSurfaceView: SurfaceView? = null
     private var controllerView: View? = null
@@ -43,7 +41,6 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
     private var mTimeHandler: TimeHandler? = null//进度更新
     private val mDelayHandler: Handler = Handler(Looper.getMainLooper())//延时器
     private var mProgressSeekBar: AppCompatSeekBar? = null//进度条
-    private var mGestureListener: GestureDetectorCompat? = null//手势监听
     private var mControllerViewIsShow: Boolean = false//界面是否显示
     private var mLineBar: ProgressBar? = null//细进度条
     private var mLockIv: ImageView? = null//锁
@@ -52,15 +49,14 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
     private var mPlayerListIv: ImageView? = null//显示播放列表
     private var mModel: IPlayerContract.IModel? = null
     private var mMediaEntity: RecordEntity? = null
+    private var mTouchGesture: GestureDetectorCompat? = null
 
     init {
         fitsSystemWindows = true
         setBackgroundColor(Color.BLACK)
-    }
-
-    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        parent.requestDisallowInterceptTouchEvent(true)
-        return super.onInterceptTouchEvent(ev)
+        if (mTimeHandler == null) {
+            mTimeHandler = TimeHandler(this)
+        }
     }
 
 
@@ -107,24 +103,34 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
     }
 
     override fun setPlayMedia(entity: RecordEntity?) {
+        if (entity == null) {
+            return
+        }
         mMediaEntity = entity
         setMediaPath(mMediaEntity!!.path)
+        val lastPosition = entity.lastPlayPosition
         if (mController != null) {
-            mController!!.seekToPosition(mMediaEntity!!.lastPlayPosition)
+            println("...2 " + entity.toString())
+            println("lastPosition=$lastPosition")
+            if (lastPosition == 0L) {
+                mController!!.startOrPause()
+            } else {
+                mController!!.seekToPosition(lastPosition)
+                println("position=" + lastPosition)
+            }
         }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if(keyCode == KeyEvent.KEYCODE_BACK){
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
             stopPlayer()
             return true
         }
         return super.onKeyDown(keyCode, event)
     }
 
-
     override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
-        if(keyCode == KeyEvent.KEYCODE_BACK){
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
             stopPlayer()
             return true
         }
@@ -133,27 +139,22 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
 
     fun setMediaPath(path: String) {
         setMediaUri(Uri.parse(path))
-        getTitle(path)
+        setTitleFromPath(path)
     }
 
-    private fun getTitle(path: String) {
+    private fun setTitleFromPath(path: String) {
         val name = path.substring(path.lastIndexOf('/') + 1)
-        setTitle(name)
-    }
-
-    fun setMediaUri(uri: Uri) {
-        this.mVideoUri = uri
-        initView()
-        mController!!.startOrPause()
-    }
-
-    fun setTitle(title: String) {
         if (mTitleTv != null) {
-            mTitleTv!!.text = title
+            mTitleTv!!.text = name
         }
     }
 
-    private fun initView() {
+    private fun setMediaUri(uri: Uri) {
+        this.mVideoUri = uri
+        createSurface()
+    }
+
+    private fun createSurface() {
         if (mSurfaceView == null) {
             createAndAddSurfaceView(SurfaceView(context))
             loadControllerView()
@@ -187,59 +188,72 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
         mTitleTv!!.setOnClickListener(mClickListener)
         mPlayIv!!.setOnClickListener(mClickListener)
         mProgressSeekBar!!.setOnSeekBarChangeListener(onDragProgressListener)
-        controllerView!!.setOnTouchListener { _, event ->
-            if (mGestureListener == null) {
-                mGestureListener = GestureDetectorCompat(context, mGestureDetectorListener)
-            }
-            mGestureListener!!.onTouchEvent(event)
-            true
-        }
         updateTopLayoutTime()
         addView(controllerView)
+        controllerView!!.setOnTouchListener { v, event ->
+            if (mTouchGesture == null) {
+                mTouchGesture = GestureDetectorCompat(context, listener)
+            }
+            mTouchGesture!!.onTouchEvent(event)
+            true
+        }
     }
 
-    private val mGestureDetectorListener = object : GestureDetector.SimpleOnGestureListener() {
-        override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
-            //前提是未锁住之前
-            if (mLocked.not()) {
-                //左边控制亮度
-                if (e1!!.x < controllerView!!.measuredWidth / 2) {
-                    if (Math.abs(distanceY) > 5) {
-                        mModel!!.windowBrightness = mModel!!.windowBrightness + distanceY * 12
-                        return true
-                    }
-                } else {//右边控制音量
-                    if (Math.abs(distanceY) > 10) {
-                        if (distanceY > 0) {
-                            mModel!!.changeVolume(1)
-                        } else {
-                            mModel!!.changeVolume(0)
-                        }
-                        return true
+
+    fun singleTap() {
+        if (mControllerViewIsShow) {
+            clearViewInLayout()
+        } else {
+            showViewInLayout()
+        }
+    }
+
+    fun doubleTap() {
+        mController!!.startOrPause()
+    }
+
+    fun scroll(e1: MotionEvent?, distanceY: Float?) {
+        //前提是未锁住之前
+        if (mLocked.not()) {
+            if (e1 == null || controllerView == null) {
+                return
+            }
+            //左边控制亮度
+            if (e1.x < controllerView!!.measuredWidth / 2) {
+                if (Math.abs(distanceY!!) > 5) {
+                    mModel!!.windowBrightness = mModel!!.windowBrightness + distanceY * 12
+                }
+            } else {//右边控制音量
+                if (Math.abs(distanceY!!) > 10) {
+                    if (distanceY > 0) {
+                        mModel!!.changeVolume(1)
+                    } else {
+                        mModel!!.changeVolume(0)
                     }
                 }
             }
-
-            return super.onScroll(e1, e2, distanceX, distanceY)
         }
+
+    }
+
+    private val listener = object : GestureDetector.SimpleOnGestureListener() {
 
         override fun onDoubleTap(e: MotionEvent?): Boolean {
-            println("双击")
-            mController!!.startOrPause()
-            return true
+            doubleTap()
+            return super.onDoubleTap(e)
         }
 
+        override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean =
+                super.onScroll(e1, e2, distanceX, distanceY)
+
         override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
-            if (mControllerViewIsShow) {
-                clearViewInLayout()
-            } else {
-                showViewInLayout()
-            }
-            return true
+            singleTap()
+            return super.onSingleTapConfirmed(e)
         }
     }
 
-    fun showViewInLayout() {
+
+    private fun showViewInLayout() {
         if (mLocked) {
             showLockedTime()
         } else {
@@ -252,7 +266,7 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
         mControllerViewIsShow = true
     }
 
-    fun clearViewInLayout() {
+    private fun clearViewInLayout() {
         hiddenTopAndBottomView()
         hideLockIv()
         hideLockedTime()
@@ -272,12 +286,11 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
         }
     }
 
-    private val mClickListener = View.OnClickListener {
-        v ->
+    private val mClickListener = View.OnClickListener { v ->
         when (v.id) {
             R.id.media_controller_back_iv -> {
+                stopPlayer()
                 mController!!.stopPlayer()
-                mModel!!.destroy()
             }
             R.id.media_controller_play_iv -> {
                 mController!!.startOrPause()
@@ -326,9 +339,12 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
                 mLineBar!!.progress = progress.toInt()
             }
         }
+        mMediaEntity!!.lastPlayPosition = mCurrentPosition
         val time = DateUtil.getInstance().getTime(mCurrentPosition)
         controllerView!!.media_controller_time_display_tv.text = time
     }
+
+    fun getEntity(): RecordEntity = mMediaEntity!!
 
     override fun onPlayerStateChanged(state: Int) {
         println("change state = $state .... ... ... ")
@@ -336,9 +352,6 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
         when (state) {
             LController.PlayerState.STATE_PLAYING -> {
                 mPlayIv!!.setImageResource(R.mipmap.ic_pause_media)
-                if (mTimeHandler == null) {
-                    mTimeHandler = TimeHandler(this)
-                }
                 mTimeHandler!!.sendEmptyMessageDelayed(0, 1000)
                 delayHiddenViewInLayout()
             }
@@ -362,10 +375,10 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
         }
     }
 
-    fun stopPlayer(){
+    private fun stopPlayer() {
         mMediaEntity!!.duration = mController!!.duration
         mMediaEntity!!.lastPlayPosition = mController!!.currentPosition
-        mModel!!.setRecord(mModel!!.currentMediaPosition,mMediaEntity)
+        mModel!!.setRecord(mModel!!.currentMediaPosition, mMediaEntity)
         mModel!!.destroy()
         mTimeHandler!!.removeCallbacksAndMessages(null)
         mPlayIv!!.setImageResource(R.mipmap.ic_play_media)
@@ -373,7 +386,7 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
         controllerView!!.media_controller_time_display_tv.text = resources.getString(R.string.empty_time)
     }
 
-    fun hiddenTopAndBottomView() {
+    private fun hiddenTopAndBottomView() {
         if (controllerView!!.media_controller_top_layout.visibility == View.GONE)
             return
         mDelayHandler.removeCallbacksAndMessages(null)
@@ -382,10 +395,9 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
         showBottomLineBar()
     }
 
-    fun showTopAndBottomView() {
+    private fun showTopAndBottomView() {
         if (controllerView!!.media_controller_top_layout.visibility == View.VISIBLE)
             return
-
         //更新界面中系统时间
         updateTopLayoutTime()
         hideBottomLineBar()
@@ -396,7 +408,7 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
     /**
      * 更新顶部title布局中的时间
      */
-    fun updateTopLayoutTime() {
+    private fun updateTopLayoutTime() {
         if (mTitleTimeTv != null) {
             mTitleTimeTv!!.text = DateUtil.getInstance().formatTime(Date())
         }
@@ -405,7 +417,7 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
     /**
      * 显示底部linebar
      */
-    fun showBottomLineBar() {
+    private fun showBottomLineBar() {
         if (mLineBar == null) {
             mLineBar = View.inflate(context, R.layout.layout_line_progress, null) as ProgressBar
             val params = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
@@ -419,13 +431,13 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
     /**
      * 隐藏底部linebar
      */
-    fun hideBottomLineBar() {
+    private fun hideBottomLineBar() {
         if (mLineBar != null) {
             mLineBar!!.visibility = View.GONE
         }
     }
 
-    fun showLockIv(): Boolean {
+    private fun showLockIv(): Boolean {
         if (mLockIv == null) {
             mLockIv = AppCompatImageView(context)
             mLockIv!!.id = mLockId
@@ -443,14 +455,14 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
         return mLocked
     }
 
-    fun hideLockIv(): Boolean {
+    private fun hideLockIv(): Boolean {
         if (mLockIv != null) {
             mLockIv!!.visibility = View.GONE
         }
         return mLocked
     }
 
-    fun showLockedTime() {
+    private fun showLockedTime() {
         val mTimeTv = AppCompatTextView(context)
         mTimeTv.setTextColor(Color.WHITE)
         mTimeTv.textSize = 15f
@@ -464,12 +476,12 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
         addView(mTimeTv, params)
     }
 
-    fun hideLockedTime() {
+    private fun hideLockedTime() {
         removeViewByTag("time")
     }
 
-    fun removeViewByTag(tag: String) {
-        for (i in 0..childCount - 1) {
+    private fun removeViewByTag(tag: String) {
+        for (i in 0 until childCount) {
             val child = getChildAt(i)
             if (child.tag != null) {
                 if (child.tag is String && child.tag!!.toString() == tag) {
@@ -497,7 +509,7 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
             mController!!.seekToPosition(seekBar!!.progress * percent)
             mTimeHandler!!.sendEmptyMessageDelayed(0, 1000)
             delayHiddenViewInLayout()
-            println("onStop......" + mController!!.playerState)
+//            println("onStop......" + mController!!.playerState)
         }
     }
 

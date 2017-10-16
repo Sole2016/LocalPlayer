@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -20,8 +21,8 @@ import com.zy.vplayer.widget.LVideoView
 import kotlinx.android.synthetic.main.activity_player.*
 
 class PlayerActivity : AppCompatActivity(), IPlayerContract.IModel {
-    val ACTION_LIST = "QUEUE_LIST"
-    val ACTION_POSITION = "PLAY_POSITION"
+    private val ACTION_LIST = "QUEUE_LIST"
+    private val ACTION_POSITION = "PLAY_POSITION"
 
     private var mVideoView: LVideoView? = null
     private var mVideoController: IPlayerContract.IPlayerController? = null
@@ -39,12 +40,17 @@ class PlayerActivity : AppCompatActivity(), IPlayerContract.IModel {
             supportActionBar!!.hide()
         }
         entityList = intent.extras.getParcelableArrayList<RecordEntity>(ACTION_LIST)
-
-        if(entityList == null){
+        if (entityList == null) {
             finish()
             return
         }
-        mMediaPosition = intent.getIntExtra(ACTION_POSITION,0)
+        mMediaPosition = intent.getIntExtra(ACTION_POSITION, 0)
+
+        if (mMediaPosition >= entityList!!.size) {
+            println("playPosition is " + mMediaPosition + ",but list size is " + entityList!!.size)
+            finish()
+            return
+        }
         mRecyclerList = queue_list_recycler
         mRecyclerList!!.layoutManager = LinearLayoutManager(this)
 
@@ -63,9 +69,7 @@ class PlayerActivity : AppCompatActivity(), IPlayerContract.IModel {
         window.attributes = lp
     }
 
-    override fun getWindowBrightness(): Float {
-        return window.attributes.screenBrightness
-    }
+    override fun getWindowBrightness(): Float = window.attributes.screenBrightness
 
     override fun keepScreenOn(flag: Boolean) {
         val lp = window.attributes
@@ -103,20 +107,14 @@ class PlayerActivity : AppCompatActivity(), IPlayerContract.IModel {
                     mRecyclerList?.getGlobalVisibleRect(area)
                     if (!area.contains(ev.x.toInt(), ev.y.toInt())) {
                         hideMediaList()
-                        return true
+                        return super.dispatchTouchEvent(ev)
                     }
+                } else {
+                    return super.dispatchTouchEvent(ev)
                 }
             }
         }
         return super.dispatchTouchEvent(ev)
-    }
-
-    override fun onResume() {
-        super.onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
     }
 
     override fun showMediaList() {
@@ -135,15 +133,14 @@ class PlayerActivity : AppCompatActivity(), IPlayerContract.IModel {
 
     override fun setRecord(position: Int, recordEntity: RecordEntity?) {
         entityList!![position] = recordEntity!!
+        saveRecord()
     }
 
     override fun saveRecord() {
         LocalCache.getInstance().saveLocalCache(this, entityList)
     }
 
-    override fun getCurrentMediaPosition(): Int {
-        return mMediaPosition
-    }
+    override fun getCurrentMediaPosition(): Int = mMediaPosition
 
     override fun getNextMedia(): RecordEntity {
         if (mMediaPosition + 1 == entityList!!.size) {
@@ -163,14 +160,19 @@ class PlayerActivity : AppCompatActivity(), IPlayerContract.IModel {
         return entityList!![mMediaPosition]
     }
 
-    val itemTouchListener = AdapterItemTouchListener { _, position ->
+    private val itemTouchListener = AdapterItemTouchListener { _, position ->
         mMediaPosition = position
         mVideoView!!.setMediaPath(mQueueAdapter!!.getItem(position).path)
         mQueueAdapter!!.setPlayingPosition(mMediaPosition)
         hideMediaList()
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean =
+            mVideoView!!.onKeyDown(keyCode, event)
+
     override fun destroy() {
+        setRecord(currentMediaPosition, mVideoView!!.getEntity())
+        setResult(0)
         finish()
     }
 

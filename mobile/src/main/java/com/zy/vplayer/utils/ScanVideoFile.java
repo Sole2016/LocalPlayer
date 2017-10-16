@@ -5,14 +5,13 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.google.android.exoplayer.util.Util;
+import com.zy.vplayer.entity.RecordEntity;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 扫描本地音乐文件
@@ -22,10 +21,10 @@ public class ScanVideoFile {
     private static final int COUNT_CHANGE = 0X001;//扫描的数量发生了变化
     private static final int SCAN_COMPLETE = 0X000;//扫描完成
 
-    private String[] mSupportMedia = {".mp4", ".rmvb", ".mkv",".MP4"};//所支持的音乐格式
+    private String[] mSupportMedia = {".mp4", ".rmvb", ".mkv", ".MP4"};//所支持的音乐格式
     private static ExecutorService executor = Executors.newSingleThreadExecutor();//单一线程池
     private ArrayList<OnScanComplete> callBackList = new ArrayList<>();
-    private volatile ArrayList<String> mPathList = new ArrayList<>();//扫描到的音乐路径集合
+    private volatile ArrayList<RecordEntity> mPathList = new ArrayList<>();//扫描到的音乐路径集合
     private ScanHandler mHandler = new ScanHandler(this);//线程回调的handler
     private String mInnerStoragePath;//内部存储路径
     private String mExternalStoragePath;//外部存储路径
@@ -41,7 +40,6 @@ public class ScanVideoFile {
 
     private ScanVideoFile() {
     }
-
 
 
     public ScanVideoFile setOnScanComplete(OnScanComplete complete) {
@@ -135,13 +133,25 @@ public class ScanVideoFile {
         if (!file.getName().contains(".")) {
             return;
         }
+        //过滤以 '.'字符开头格式的文件（仅当只有一个‘.’符号的情况）
+        if (file.getName().lastIndexOf('.') < 1) {
+            return;
+        }
+        //过滤类似   xxx.xxxxxx || xx.x||xx.xx
+        int lastIndex = file.getName().lastIndexOf('.');
+        int lastCharIndex = file.getName().length() - 1;
+        int delta = lastCharIndex - lastIndex;
+        if (delta > 5 || delta < 2) {
+            return;
+        }
         //判断文件的类型是否支持
         for (String format : mSupportMedia) {
             if (file.getName().endsWith(format)) {
                 long size = 1024L * 1024L;// * 1L  1M的大小
                 if (size < file.length()) {
-                    Log.w(TAG, file.getAbsolutePath()+",length="+file.length());
-                    mPathList.add(file.getAbsolutePath());
+                    Log.w(TAG, file.getAbsolutePath() + ",length=" + file.lastModified());
+                    mPathList.add(new RecordEntity(file.getAbsolutePath(), 0, 0,
+                            DateUtil.getInstance().getDateWithTime(file.lastModified()), FileUtils.getFileSize(file)));
                     mHandler.sendEmptyMessage(COUNT_CHANGE);
                 }
                 return;
@@ -151,7 +161,7 @@ public class ScanVideoFile {
 
     public abstract static class OnScanComplete {
 
-        protected abstract void onComplete(ArrayList<String> paths);
+        protected abstract void onComplete(ArrayList<RecordEntity> paths);
 
         protected void onCountChange(int size) {
 

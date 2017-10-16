@@ -18,4 +18,5 @@
         android:visibility="gone"
         android:layout_height="match_parent"
         android:minWidth="@dimen/dp50"/>
+
 </FrameLayout>

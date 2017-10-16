@@ -22,6 +22,8 @@ import android.util.Log
 import android.view.ViewGroup
 
 import com.bumptech.glide.Glide
+import com.bumptech.glide.TransitionOptions
+import com.bumptech.glide.request.RequestOptions
 import kotlin.properties.Delegates
 
 /**
@@ -35,6 +37,7 @@ class CardPresenter : Presenter() {
 
     override fun onCreateViewHolder(parent: ViewGroup): Presenter.ViewHolder {
         Log.d(TAG, "onCreateViewHolder")
+
 
         sDefaultBackgroundColor = ContextCompat.getColor(parent.context, R.color.default_background)
         sSelectedBackgroundColor =
@@ -63,10 +66,12 @@ class CardPresenter : Presenter() {
             cardView.titleText = movie.title
             cardView.contentText = movie.studio
             cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT)
+            val option = RequestOptions()
+            option.error(mDefaultCardImage)
+            option.centerCrop()
             Glide.with(viewHolder.view.context)
                     .load(movie.cardImageUrl)
-                    .centerCrop()
-                    .error(mDefaultCardImage)
+                    .apply(option)
                     .into(cardView.mainImageView)
         }
     }

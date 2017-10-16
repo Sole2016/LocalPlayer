@@ -1,48 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <android.support.v7.widget.AppCompatImageView
-        android:id="@+id/queue_item_article"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/dp120"
-        app:layout_constraintEnd_toEndOf="parent"
+    <FrameLayout
+        android:id="@+id/queue_item_article_parent"
+        android:layout_width="@dimen/dp50"
+        android:layout_height="@dimen/dp50"
+        android:layout_margin="@dimen/dp5"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@color/colorAccent" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <android.support.v7.widget.AppCompatImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:background="@drawable/lock_view_background"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@mipmap/ic_play_media"
-        app:layout_constraintBottom_toBottomOf="@+id/queue_item_article" />
+        <android.support.v7.widget.AppCompatImageView
+            android:id="@+id/queue_item_article"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:srcCompat="@color/colorAccent" />
+
+        <android.support.v7.widget.AppCompatImageView
+            android:id="@+id/queue_item_hint_progress"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+    </FrameLayout>
+
 
     <TextView
-        android:id="@+id/queue_item_path"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="@dimen/sp12"
-        android:text="位置："
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/queue_item_last_position_bar"/>
-
-    <ProgressBar
-        android:id="@+id/queue_item_last_position_bar"
+        android:id="@+id/queue_item_name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        style="@style/LineBarStyle"
-        android:visibility="visible"
-        app:layout_goneMarginTop="@dimen/dp5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/queue_item_article"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:layout_marginEnd="@dimen/dp5"
+        android:layout_marginStart="@dimen/dp5"
+        android:layout_marginTop="@dimen/dp5"
+        android:ellipsize="marquee"
+        android:textSize="@dimen/sp16"
+        android:singleLine="true"
+        android:text="name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.02"
+        app:layout_constraintStart_toEndOf="@+id/queue_item_article_parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <!--<TextView-->
+        <!--android:id="@+id/queue_item_path"-->
+        <!--android:layout_width="0dp"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginEnd="@dimen/dp5"-->
+        <!--android:layout_marginStart="@dimen/dp5"-->
+        <!--android:text="/string_simple_text/string_simple_text/str"-->
+        <!--android:textSize="@dimen/sp12"-->
+        <!--app:layout_constraintEnd_toEndOf="parent"-->
+        <!--app:layout_constraintStart_toEndOf="@+id/queue_item_article_parent"-->
+        <!--app:layout_constraintTop_toBottomOf="@+id/queue_item_name" />-->
+
+    <TextView
+        android:id="@+id/queue_item_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp10"
+        android:text="@string/empty_time"
+        android:textSize="@dimen/sp14"
+        app:layout_constraintStart_toStartOf="@+id/queue_item_name"
+        app:layout_constraintTop_toBottomOf="@+id/queue_item_name" />
+
+    <TextView
+        android:id="@+id/queue_item_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/dp10"
+        android:layout_marginRight="@dimen/dp10"
+        android:text="@string/empty_time"
+        android:textSize="@dimen/sp12"
+        app:layout_constraintBaseline_toBaselineOf="@+id/queue_item_size"
+        app:layout_constraintEnd_toEndOf="parent" />
 </android.support.constraint.ConstraintLayout>

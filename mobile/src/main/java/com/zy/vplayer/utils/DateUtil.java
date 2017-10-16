@@ -1,8 +1,5 @@
 package com.zy.vplayer.utils;
 
-import android.view.Gravity;
-import android.widget.FrameLayout;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -28,12 +25,20 @@ public class DateUtil {
     }
 
     public String formatTime(Date date){
-
-
-
-
         SimpleDateFormat format = (SimpleDateFormat) SimpleDateFormat.getDateInstance();
         format.applyLocalizedPattern("HH:mm");
         return format.format(date);
+    }
+
+    public String getDateWithTime(long mis){
+        SimpleDateFormat format = (SimpleDateFormat) SimpleDateFormat.getDateInstance();
+        format.applyLocalizedPattern("yyyy/MM/dd HH:mm:ss");
+        return format.format(new Date(mis));
+    }
+
+    public String getDate(long mis){
+        SimpleDateFormat format = (SimpleDateFormat) SimpleDateFormat.getDateInstance();
+        format.applyLocalizedPattern("yyyy/MM/dd");
+        return format.format(new Date(mis));
     }
 }
