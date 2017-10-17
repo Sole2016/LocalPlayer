@@ -110,13 +110,10 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
         setMediaPath(mMediaEntity!!.path)
         val lastPosition = entity.lastPlayPosition
         if (mController != null) {
-            println("...2 " + entity.toString())
-            println("lastPosition=$lastPosition")
             if (lastPosition == 0L) {
                 mController!!.startOrPause()
             } else {
                 mController!!.seekToPosition(lastPosition)
-                println("position=" + lastPosition)
             }
         }
     }
@@ -127,14 +124,6 @@ class LVideoView(context: Context?, attrs: AttributeSet?) : FrameLayout(context,
             return true
         }
         return super.onKeyDown(keyCode, event)
-    }
-
-    override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            stopPlayer()
-            return true
-        }
-        return super.onKeyLongPress(keyCode, event)
     }
 
     fun setMediaPath(path: String) {

@@ -2,6 +2,7 @@ package com.zy.vplayer.widget
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.view.SurfaceHolder
 import com.zy.vplayer.contract.IPlayerContract
 import tv.danmaku.ijk.media.exo.IjkExoMediaPlayer
@@ -9,6 +10,7 @@ import tv.danmaku.ijk.media.player.IMediaPlayer
 import java.lang.ref.WeakReference
 
 class LController(c: Context, view: IPlayerContract.IView) : IPlayerContract.IPlayerController {
+
     interface PlayerState {
         companion object {
             val STATE_PLAYING: Int = 0x001
@@ -21,14 +23,14 @@ class LController(c: Context, view: IPlayerContract.IView) : IPlayerContract.IPl
             val STATE_SEEK_TO: Int = 0x008
         }
     }
-
+    private val mTag:String = "LController"
     private var mTargetState: Int = PlayerState.STATE_EMPTY
     private var mCurrentState: Int = LController.PlayerState.STATE_EMPTY
     private var mContextWeak: WeakReference<Context>? = null
     private var mViewWeak: WeakReference<IPlayerContract.IView>? = null
     private var mSurfaceHolder: SurfaceHolder? = null
     var mPlayer: IMediaPlayer? = null
-    private var mSeekPosition = 0L
+    private var mSeekPosition: Long = 0L
 
     override fun setVideoUri(uri: Uri) {
         //如果是正在播放或者暂停状态，重新创建播放器
@@ -92,18 +94,31 @@ class LController(c: Context, view: IPlayerContract.IView) : IPlayerContract.IPl
     override fun seekToPosition(position: Long) {
         if (mCurrentState == PlayerState.STATE_PLAYING || mCurrentState == PlayerState.STATE_PAUSE ||
                 mCurrentState == PlayerState.STATE_PREPARED) {
-            mPlayer!!.seekTo(position)
-            mCurrentState = PlayerState.STATE_PREPARING
+            if (position >= mPlayer!!.duration) {
+                mPlayer!!.seekTo(0L)
+            } else {
+                mPlayer!!.seekTo(position)
+            }
+            mCurrentState = PlayerState.STATE_PLAYING
             mTargetState = PlayerState.STATE_PLAYING
             notifyStateChange()
-            println("if current=$mCurrentState,target=$mTargetState")
+            println("---***--- seekToPosition if current=$mCurrentState,target=$mTargetState")
         } else {
             //缓冲中。。。
             if (mCurrentState == PlayerState.STATE_PREPARING) {
-                mSeekPosition = position
-                println("seekToPosition seek position is $mSeekPosition ... $position")
+                if (position >= mPlayer!!.duration) {
+                    mSeekPosition = 0L
+                } else {
+                    mSeekPosition = position
+                }
+                println("---***--- seekToPosition buffing before is $mSeekPosition ... $position")
+                if (position != mSeekPosition) {
+                    mSeekPosition = 0L
+                    mSeekPosition += position
+                }
+
+                println("---***--- seekToPosition buffing is $mSeekPosition ... $position")
                 mTargetState = PlayerState.STATE_SEEK_TO
-                println("else current=$mCurrentState,target=$mTargetState")
             }
         }
 
@@ -125,21 +140,21 @@ class LController(c: Context, view: IPlayerContract.IView) : IPlayerContract.IPl
     }
 
     private val playerPreparedListener = IMediaPlayer.OnPreparedListener { mp ->
-        println("缓冲完成")
+        println("prepared complete.....")
         mCurrentState = PlayerState.STATE_PREPARED
         notifyStateChange()
         if (mTargetState == PlayerState.STATE_PLAYING && mPlayer!!.isPlaying.not()) {
-            println("target state is playing.....")
+            println("target is playing")
             mp.start()
             mCurrentState = mTargetState
             notifyStateChange()
         }
 
         if (mTargetState == PlayerState.STATE_SEEK_TO) {
-            println("----------------------------seek position is $mSeekPosition")
-            mp.seekTo(mSeekPosition)
-            mp.start()
-            mSeekPosition = 0L
+            println("target is seek to $mSeekPosition")
+            Log.e(mTag,"target is seek to $mSeekPosition")
+            mPlayer!!.seekTo(mSeekPosition)
+            mPlayer!!.start()
             mCurrentState = PlayerState.STATE_PLAYING
             mTargetState = PlayerState.STATE_PLAYING
             notifyStateChange()

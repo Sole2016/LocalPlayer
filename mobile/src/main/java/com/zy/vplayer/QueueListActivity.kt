@@ -3,13 +3,11 @@ package com.zy.vplayer
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.GridLayoutManager
+import android.support.v7.app.AppCompatDialog
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import com.zy.vplayer.adapter.AdapterItemTouchListener
 import com.zy.vplayer.adapter.QueueAdapter
 import com.zy.vplayer.entity.RecordEntity
@@ -20,6 +18,7 @@ import kotlinx.android.synthetic.main.activity_queue_list.*
 class QueueListActivity : AppCompatActivity() {
     private var mRecycler: RecyclerView? = null
     private var mAdapter: QueueAdapter? = null
+    private var mLoadingDialog: AppCompatDialog?=null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,12 +56,32 @@ class QueueListActivity : AppCompatActivity() {
     }
 
     private fun refreshLocal(){
+        showLoading()
         ScanVideoFile.getInstance().scanVideoFile(this).setOnScanComplete(object : ScanVideoFile.OnScanComplete() {
             override fun onComplete(paths: ArrayList<RecordEntity>?) {
+                hideLoading()
                 LocalCache.getInstance().saveLocalCache(applicationContext, paths)
                 applyData(paths!!)
             }
         })
+    }
+
+    private fun showLoading(){
+        if(mLoadingDialog == null){
+            mLoadingDialog = AppCompatDialog(this,R.style.TransDialog)
+            mLoadingDialog!!.setContentView(R.layout.loading_layout)
+            mLoadingDialog!!.setCanceledOnTouchOutside(false)
+        }
+        if(mLoadingDialog!!.isShowing){
+            return
+        }
+        mLoadingDialog!!.show()
+    }
+
+    private fun hideLoading(){
+        if(mLoadingDialog != null && mLoadingDialog!!.isShowing){
+            mLoadingDialog!!.dismiss()
+        }
     }
 
     fun applyData(list: ArrayList<RecordEntity>) {
