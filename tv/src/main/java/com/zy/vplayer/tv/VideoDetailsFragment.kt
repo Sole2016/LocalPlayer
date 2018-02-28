@@ -76,7 +76,7 @@ class VideoDetailsFragment : DetailsFragment() {
             setupDetailsOverviewRowPresenter()
             setupRelatedMovieListRow()
             adapter = mAdapter
-            initializeBackground(mSelectedMovie)
+//            initializeBackground(mSelectedMovie)
             onItemViewClickedListener = ItemViewClickedListener()
         } else {
             val intent = Intent(activity, MainActivity::class.java)
@@ -84,11 +84,11 @@ class VideoDetailsFragment : DetailsFragment() {
         }
     }
 
-    private fun initializeBackground(movie: Movie?) {
-        mDetailsBackground.enableParallax()
-        val option = RequestOptions()
-        option.centerCrop()
-        option.error(R.drawable.default_background)
+//    private fun initializeBackground(movie: Movie?) {
+//        mDetailsBackground.enableParallax()
+//        val option = RequestOptions()
+//        option.centerCrop()
+//        option.error(R.drawable.default_background)
 //        Glide.with(activity)
 //                .load(movie?.backgroundImageUrl)
 //                .apply(option)
@@ -100,7 +100,7 @@ class VideoDetailsFragment : DetailsFragment() {
 //                    }
 //
 //                })
-    }
+//    }
 
     private fun setupDetailsOverviewRow() {
         Log.d(TAG, "doInBackground: " + mSelectedMovie?.toString())

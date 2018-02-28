@@ -53,7 +53,6 @@ import com.bumptech.glide.request.transition.Transition
  * Loads a grid of cards with movies to browse.
  */
 class MainFragment : BrowseFragment() {
-
     private val mHandler = Handler()
     private lateinit var mRowsAdapter: ArrayObjectAdapter
     private lateinit var mBackgroundManager: BackgroundManager
@@ -82,9 +81,9 @@ class MainFragment : BrowseFragment() {
     }
 
     private fun prepareBackgroundManager() {
-
         mBackgroundManager = BackgroundManager.getInstance(activity)
         mBackgroundManager.attach(activity.window)
+
         mDefaultBackground = ContextCompat.getDrawable(activity, R.drawable.default_background)
         mMetrics = DisplayMetrics()
         activity.windowManager.defaultDisplay.getMetrics(mMetrics)
